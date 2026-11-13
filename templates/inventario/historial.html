@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <a class="volver" href="{% url 'lista' entidad %}">← Volver a materiales</a>
+    <p class="eyebrow">
+        TRAZABILIDAD DEL MATERIAL /
+        {{ material.codigo }}
+    </p>
+    <div class="cabecera">
+        <h1 class="titulo-form">{{ material.descripcion }}</h1>
+        {% if perms.inventario.add_movimientoinventario %}
+            <a class="boton principal" href="{% url 'movimiento_nuevo' entidad material.pk %}">
+                + Registrar movimiento
+            </a>
+        {% endif %}
+    </div>
+    <div class="indicadores">
+        <div>
+            <small>DISPONIBLE</small>
+            <strong>
+                {{ material.existencias }}
+                <em>
+                    {% if entidad == 'telas' %}
+                        m
+                    {% else %}
+                        {{ material.unidad }}
+                    {% endif %}
+                </em>
+            </strong>
+        </div>
+        <div>
+            <small>UMBRAL DE REPOSICIÓN</small>
+            <strong>{{ material.stock_minimo }}</strong>
+        </div>
+        <div>
+            <small>PROVEEDOR</small>
+            <p>{{ material.proveedor }}</p>
+        </div>
+    </div>
+    {% if material.stock_bajo %}
+        <p class="aviso error">Este material necesita reposición antes de los próximos encargos.</p>
+    {% endif %}
+    <div class="papel tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Operación</th>
+                    <th>Cantidad</th>
+                    <th>Encargo / nota</th>
+                    <th>Responsable</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movimiento in pagina %}
+                    <tr>
+                        <td>{{ movimiento.fecha|date:'d/m/Y H:i' }}</td>
+                        <td>{{ movimiento.get_tipo_display }}</td>
+                        <td>{{ movimiento.cantidad }}</td>
+                        <td>
+                            {% if movimiento.detalle %}
+                                <a href="{% url 'pedido' movimiento.detalle.pedido_id %}">{{ movimiento.detalle }}</a>
+                            {% endif %}
+                            <small>{{ movimiento.notas }}</small>
+                        </td>
+                        <td>{{ movimiento.responsable }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="vacio">
+                                <h2>La pieza está lista para entrar al taller.</h2>
+                                <p>Registra una entrada para disponer de existencias.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'gestion/paginacion.html' %}
+{% endblock %}

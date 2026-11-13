@@ -1,0 +1,11 @@
+{{ form.non_field_errors }}
+{% for field in form %}
+    <div class="campo {% if field.field.widget.input_type == 'checkbox' %}casilla{% endif %}">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+            <small>{{ field.help_text|safe }}</small>
+        {% endif %}
+        {{ field.errors }}
+    </div>
+{% endfor %}

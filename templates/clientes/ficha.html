@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load taller %}
+{% block contenido %}
+    <a class="volver" href="{% url 'lista' 'clientes' %}">← Archivo de clientes</a>
+    <p class="eyebrow">
+        FICHA PERSONAL / N.º
+        {{ cliente.pk|stringformat:'04d' }}
+    </p>
+    <div class="cabecera">
+        <h1>{{ cliente.nombre }}</h1>
+        {% if perms.clientes.change_cliente %}
+            <a class="boton" href="{% url 'editar' 'clientes' cliente.pk %}">Editar datos</a>
+        {% endif %}
+    </div>
+    <div class="columnas-dos">
+        <section class="papel">
+            <p class="eyebrow">DATOS DE CONTACTO</p>
+            <dl>
+                <dt>Teléfono</dt>
+                <dd>{{ cliente.telefono }}</dd>
+                <dt>Correo</dt>
+                <dd>{{ cliente.correo|default:'—' }}</dd>
+                <dt>Documento</dt>
+                <dd>{{ cliente.documento|default:'—' }}</dd>
+                <dt>Dirección</dt>
+                <dd>{{ cliente.direccion|default:'—' }}</dd>
+            </dl>
+        </section>
+        <section class="papel">
+            <p class="eyebrow">EL CALCE TAMBIÉN SE ESCUCHA</p>
+            <h2>Notas del cliente</h2>
+            <div class="texto-notas">
+                {{ cliente.preferencias|default:'Aún no hay preferencias anotadas.'|linebreaksbr }}
+            </div>
+        </section>
+    </div>
+    <div class="cabecera">
+        <div>
+            <p class="eyebrow">EL CUERPO CAMBIA, EL HISTORIAL PERMANECE</p>
+            <h2>Cuaderno de medidas</h2>
+        </div>
+        {% if perms.clientes.add_medida %}
+            <a class="boton principal" href="{% url 'medida_nueva' cliente.pk %}">+ Tomar medidas</a>
+        {% endif %}
+    </div>
+    <div class="fichas-medidas">
+        {% for medida in medidas %}
+            <article class="papel">
+                <p class="eyebrow">
+                    VERSIÓN
+                    {{ medida.pk }}
+                    /
+                    {{ medida.fecha|date:'d M Y · H:i' }}
+                </p>
+                <h2>{{ medida.tipo_prenda }}</h2>
+                <dl class="medidas-datos">
+                    {% for campo in campos_medida %}
+                        <div>
+                            <dt>{{ campo|etiqueta_medida }}</dt>
+                            <dd>
+                                {{ medida|medida_valor:campo|default_if_none:'—' }}
+                                <small>cm</small>
+                            </dd>
+                        </div>
+                    {% endfor %}
+                </dl>
+                <p>{{ medida.observaciones|linebreaksbr }}</p>
+                <small>
+                    Tomadas por
+                    {{ medida.responsable }}
+                </small>
+            </article>
+        {% empty %}
+            <div class="vacio papel">
+                <h2>Una silueta por conocer.</h2>
+                <p>Registra la primera versión de medidas para comenzar una prenda a medida.</p>
+            </div>
+        {% endfor %}
+    </div>
+    <h2>
+        Los encargos de
+        {{ cliente.nombre }}
+    </h2>
+    <div class="papel">
+        {% for pedido in pedidos %}
+            <a class="renglon" href="{% url 'pedido' pedido.pk %}">
+                <span>
+                    <b>{{ pedido.numero }}</b>
+                    <small>
+                        {{ pedido.get_modalidad_display }}
+                        ·
+                        {{ pedido.get_estado_display }}
+                    </small>
+                </span>
+                <span>
+                    {{ pedido.fecha_prometida|date:'d M Y' }}
+                    <small>
+                        S/
+                        {{ pedido.total|floatformat:2 }}
+                    </small>
+                </span>
+            </a>
+        {% empty %}
+            <p>Su primera historia de taller aún está por escribirse.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

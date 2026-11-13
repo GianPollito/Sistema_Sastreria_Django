@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <p class="eyebrow">LIBRO DE COBROS</p>
+    <div class="cabecera">
+        <h1>La cuenta del taller.</h1>
+        <a class="boton" href="{% url 'tablero' %}">Cobrar desde un encargo →</a>
+    </div>
+    <div class="papel tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Comprobante</th>
+                    <th>Fecha</th>
+                    <th>Cliente / encargo</th>
+                    <th>Método</th>
+                    <th>Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagina %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'comprobante' pago.pk %}">
+                                {{ pago.comprobante }}
+                                →
+                            </a>
+                        </td>
+                        <td>{{ pago.fecha|date:'d/m/Y H:i' }}</td>
+                        <td>
+                            {{ pago.pedido.cliente }}
+                            <small>
+                                <a href="{% url 'pedido' pago.pedido_id %}">{{ pago.pedido.numero }}</a>
+                            </small>
+                        </td>
+                        <td>{{ pago.get_metodo_display }}</td>
+                        <td>
+                            S/
+                            {{ pago.importe|floatformat:2 }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="vacio">
+                                <h2>Las primeras prendas traerán los primeros cobros.</h2>
+                                <p>Abre un encargo para registrar su adelanto.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'gestion/paginacion.html' %}
+{% endblock %}

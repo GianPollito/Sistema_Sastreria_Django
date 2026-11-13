@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <a class="volver" href="{{ volver }}">← Volver al cuaderno</a>
+    <p class="eyebrow">REGISTRO DE TALLER</p>
+    <h1 class="titulo-form">{{ titulo }}</h1>
+    {% if nota %}
+        <p class="introduccion">{{ nota }}</p>
+    {% endif %}
+    <form method="post" class="formulario papel" data-proteger-envio>
+        {% csrf_token %}
+        {% include 'gestion/form_campos.html' %}
+        <div class="acciones">
+            <button class="principal">Guardar ficha</button>
+            <a class="boton" href="{{ volver }}">Cancelar</a>
+        </div>
+    </form>
+{% endblock %}

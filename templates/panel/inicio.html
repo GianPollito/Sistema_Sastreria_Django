@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <div class="cabecera">
+        <div>
+            <p class="eyebrow">
+                EL TALLER HOY /
+                {{ hoy|date:'l, d F Y' }}
+            </p>
+            <h1>
+                Todo tiene
+                <br>
+                su puntada.
+            </h1>
+            <p class="introduccion">Los compromisos, las manos y los materiales de tu taller, en un mismo cuaderno.</p>
+        </div>
+        <div class="sello">
+            A
+            <br>
+            <small>
+                HECHO
+                <br>
+                A MEDIDA
+            </small>
+        </div>
+    </div>
+    <div class="acciones no-print">
+        {% if perms.pedidos.add_pedido %}
+            <a class="boton principal" href="{% url 'pedido_nuevo' %}">+ Nuevo encargo</a>
+            <a class="boton" href="{% url 'pedido_nuevo' %}?arreglo=1">Arreglo rápido</a>
+        {% endif %}
+        <a class="boton" href="{% url 'tablero' %}">Ver tendedero →</a>
+    </div>
+    <section class="indicadores">
+        <div>
+            <small>ENCARGOS EN MARCHA</small>
+            <strong>{{ abiertos }}</strong>
+        </div>
+        <div>
+            <small>ENTREGAS EN 7 DÍAS</small>
+            <strong>{{ proximos.count }}</strong>
+        </div>
+        <div class="borgona">
+            <small>FECHA VENCIDA</small>
+            <strong>{{ atrasados.count }}</strong>
+        </div>
+        <div>
+            <small>INGRESOS DEL MES</small>
+            <strong>
+                <em>S/</em>
+                {{ ingresos|floatformat:2 }}
+            </strong>
+        </div>
+    </section>
+    <section>
+        <div class="cabecera">
+            <h2>El hilo de la confección</h2>
+            <a href="{% url 'tablero' %}">Abrir tablero →</a>
+        </div>
+        <div class="etapas-resumen">
+            {% for etapa in etapas %}
+                <div>
+                    <span>{{ forloop.counter|stringformat:'02d' }}</span>
+                    <strong>{{ etapa.cantidad }}</strong>
+                    <small>{{ etapa.nombre }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    <div class="columnas-dos">
+        <section class="papel">
+            <p class="eyebrow">LA PALABRA DADA</p>
+            <h2>Entregas por atender</h2>
+            {% for pedido in atrasados %}
+                <a class="renglon" href="{% url 'pedido' pedido.pk %}">
+                    <span>
+                        <b>{{ pedido.cliente }}</b>
+                        <small>
+                            {{ pedido.numero }}
+                            ·
+                            {{ pedido.get_estado_display }}
+                        </small>
+                    </span>
+                    <span class="borgona">
+                        {{ pedido.fecha_prometida|date:'d M' }}
+                        <small>Atrasado</small>
+                    </span>
+                </a>
+            {% endfor %}
+            {% for pedido in proximos %}
+                <a class="renglon" href="{% url 'pedido' pedido.pk %}">
+                    <span>
+                        <b>{{ pedido.cliente }}</b>
+                        <small>
+                            {{ pedido.numero }}
+                            ·
+                            {{ pedido.get_estado_display }}
+                        </small>
+                    </span>
+                    <span>{{ pedido.fecha_prometida|date:'d M' }}</span>
+                </a>
+            {% endfor %}
+            {% if not atrasados and not proximos %}
+                <p class="vacio">Las próximas entregas tienen espacio para respirar.</p>
+            {% endif %}
+        </section>
+        <section class="papel">
+            <p class="eyebrow">UN MOMENTO PARA CADA CLIENTE</p>
+            <h2>Las citas de hoy</h2>
+            {% for cita in citas %}
+                <div class="renglon">
+                    <span>
+                        <b>{{ cita.cliente }}</b>
+                        <small>
+                            {{ cita.get_motivo_display }}
+                            ·
+                            {{ cita.empleado }}
+                        </small>
+                    </span>
+                    <strong>{{ cita.inicio|date:'H:i' }}</strong>
+                </div>
+            {% empty %}
+                <p class="vacio">Hoy el taller trabaja a su propio ritmo. No hay citas pendientes.</p>
+            {% endfor %}
+            <a href="{% url 'agenda' %}">Consultar la semana →</a>
+        </section>
+    </div>
+    {% if telas_bajas or insumos_bajos %}
+        <section class="stock-aviso">
+            <p class="eyebrow">ANTES DE LA SIGUIENTE PUNTADA</p>
+            <h2>Materiales que necesitan reposición</h2>
+            {% for tela in telas_bajas %}
+                <a href="{% url 'movimientos' 'telas' tela.pk %}">
+                    {{ tela }}
+                    ·
+                    {{ tela.existencias }}
+                    m →
+                </a>
+            {% endfor %}
+            {% for insumo in insumos_bajos %}
+                <a href="{% url 'movimientos' 'insumos' insumo.pk %}">
+                    {{ insumo }}
+                    ·
+                    {{ insumo.existencias }}
+                    {{ insumo.unidad }}
+                    →
+                </a>
+            {% endfor %}
+        </section>
+    {% endif %}
+{% endblock %}

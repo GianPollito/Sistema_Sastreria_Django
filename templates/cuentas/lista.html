@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <p class="eyebrow">LAS MANOS DEL ATELIER</p>
+    <div class="cabecera">
+        <h1>El equipo.</h1>
+        {% if perms.cuentas.change_empleado %}
+            <a class="boton principal" href="{% url 'empleado_nuevo' %}">+ Incorporar empleado</a>
+        {% endif %}
+    </div>
+    <div class="papel tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                    <th>Cuenta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for empleado in empleados %}
+                    <tr>
+                        <td>{{ empleado }}</td>
+                        <td>{{ empleado.usuario.username }}</td>
+                        <td>
+                            {% for grupo in empleado.usuario.groups.all %}
+                                {{ grupo.name }}
+                            {% endfor %}
+                        </td>
+                        <td>{{ empleado.telefono }}</td>
+                        <td>
+                            {% if empleado.activo %}
+                                Activo
+                            {% else %}
+                                Inactivo
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if perms.cuentas.change_empleado %}
+                                <a href="{% url 'empleado_editar' empleado.pk %}">Editar →</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">El taller espera a sus primeras manos.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

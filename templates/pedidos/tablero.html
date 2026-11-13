@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <p class="eyebrow">DE LA IDEA A LA ÚLTIMA PUNTADA</p>
+    <div class="cabecera">
+        <h1>El tendedero.</h1>
+        {% if perms.pedidos.add_pedido %}
+            <div class="acciones">
+                <a class="boton" href="{% url 'pedido_nuevo' %}?arreglo=1">Arreglo rápido</a>
+                <a class="boton principal" href="{% url 'pedido_nuevo' %}">+ Nuevo encargo</a>
+            </div>
+        {% endif %}
+    </div>
+    <p class="introduccion">
+        Cada etiqueta es una promesa. Arrastra un encargo a la siguiente etapa o avanza desde su ficha.
+    </p>
+    <form method="get" class="busqueda">
+        <label class="sr-only" for="q">Buscar encargo</label>
+        <input id="q" name="q" value="{{ q }}" placeholder="Cliente o número de encargo">
+        <label class="sr-only" for="modalidad">Modalidad</label>
+        <select id="modalidad" name="modalidad">
+            <option value="">Todos los encargos</option>
+            <option value="medida" {% if modalidad == 'medida' %}selected{% endif %}>A medida</option>
+            <option value="arreglo" {% if modalidad == 'arreglo' %}selected{% endif %}>Arreglos rápidos</option>
+        </select>
+        <button>Filtrar</button>
+    </form>
+    <form hidden id="csrf-tablero">{% csrf_token %}</form>
+    <div class="tendedero" aria-label="Encargos por etapa">
+        {% for columna in columnas %}
+            <section class="etapa" data-etapa="{{ columna.codigo }}">
+                <div class="etapa-titulo">
+                    <span>{{ forloop.counter|stringformat:'02d' }}</span>
+                    <h2>{{ columna.nombre }}</h2>
+                    <small>{{ columna.pedidos|length }}</small>
+                </div>
+                <div class="cuerda">
+                </div>
+                {% for pedido in columna.pedidos %}
+                    <article class="etiqueta {% if pedido.prioridad == 'alta' %}urgente{% endif %}" {% if perms.pedidos.change_pedido %}draggable="true"{% endif %} data-url="{% url 'pedido_estado' pedido.pk %}" data-estado="{{ pedido.estado }}">
+                        <p class="numero">{{ pedido.numero }}</p>
+                        <a href="{% url 'pedido' pedido.pk %}">
+                            <h3>{{ pedido.cliente }}</h3>
+                        </a>
+                        <p>
+                            {{ pedido.get_modalidad_display }}
+                            {% if pedido.prioridad == 'alta' %}
+                                · Prioridad alta
+                            {% endif %}
+                        </p>
+                        <div class="mini-prendas">
+                            {% for detalle in pedido.detalles.all %}
+                                <small>
+                                    {{ detalle.cantidad }}
+                                    ×
+                                    {{ detalle.descripcion }}
+                                </small>
+                            {% empty %}
+                                <small>Falta registrar prendas</small>
+                            {% endfor %}
+                        </div>
+                        <div class="etiqueta-pie">
+                            <span>
+                                ENTREGA
+                                <br>
+                                <b>{{ pedido.fecha_prometida|date:'d M' }}</b>
+                            </span>
+                            <span>{{ pedido.sastre|default:'Sin asignar' }}</span>
+                        </div>
+                        <a class="abrir-ficha" href="{% url 'pedido' pedido.pk %}">Abrir ficha →</a>
+                    </article>
+                {% empty %}
+                    <p class="etapa-vacia">
+                        Un espacio libre
+                        <br>
+                        para la siguiente puntada.
+                    </p>
+                {% endfor %}
+            </section>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>
+            {% block titulo %}
+                Atelier · Cuaderno de taller
+            {% endblock %}
+        </title>
+        <link rel="stylesheet" href="{% static 'css/taller.css' %}">
+        <script src="{% static 'js/taller.js' %}" defer></script>
+    </head>
+    <body>
+        <a class="salto" href="#contenido">Ir al contenido</a>
+        <header>
+            <a href="{% url 'panel' %}" class="marca">
+                ATELIER
+                <small>SASTRERÍA A MEDIDA</small>
+            </a>
+            {% if user.is_authenticated %}
+                <div class="sesion">
+                    <a href="{% url 'clave' %}">{{ user.get_full_name|default:user.username }}</a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button>Salir</button>
+                    </form>
+                </div>
+            {% endif %}
+        </header>
+        {% if user.is_authenticated %}
+            <nav aria-label="Cuaderno del taller">
+                <a href="{% url 'panel' %}">01 · Taller</a>
+                <a href="{% url 'tablero' %}">02 · Encargos</a>
+                <a href="{% url 'lista' 'clientes' %}">03 · Clientes</a>
+                <a href="{% url 'agenda' %}">04 · Agenda</a>
+                <a href="{% url 'lista' 'telas' %}">05 · Telas</a>
+                <a href="{% url 'lista' 'insumos' %}">Insumos</a>
+                <a href="{% url 'lista' 'prendas' %}">Catálogo</a>
+                <a href="{% url 'pagos' %}">Cobros</a>
+                {% if perms.cuentas.change_empleado %}
+                    <a href="{% url 'empleados' %}">Equipo</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+        <main id="contenido">
+            {% if messages %}
+                <div class="avisos" aria-live="polite">
+                    {% for mensaje in messages %}
+                        <p class="aviso {{ mensaje.tags }}">{{ mensaje }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block contenido %}
+            {% endblock %}
+        </main>
+        <footer>
+            <span>OFICIO, PRECISIÓN Y TIEMPO</span>
+            <span>ATELIER / CUADERNO DE TALLER</span>
+        </footer>
+        <div id="notificacion" role="alert" hidden>
+        </div>
+    </body>
+</html>

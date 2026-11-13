@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <div class="acciones no-print">
+        <a class="boton" href="{% url 'pedido' pedido.pk %}">← Volver al encargo</a>
+        <button class="principal" data-imprimir>Imprimir comprobante</button>
+    </div>
+    <article class="recibo papel">
+        <p class="eyebrow">ATELIER / SASTRERÍA A MEDIDA</p>
+        <div class="cabecera">
+            <h1>Recibo de pago</h1>
+            <span class="numero">{{ pago.comprobante }}</span>
+        </div>
+        <p>{{ pago.fecha|date:'d F Y · H:i' }}</p>
+        <hr>
+        <dl>
+            <dt>Recibimos de</dt>
+            <dd>{{ pedido.cliente }}</dd>
+            <dt>Por el encargo</dt>
+            <dd>
+                {{ pedido.numero }}
+                ·
+                {{ pedido.get_modalidad_display }}
+            </dd>
+            <dt>Método</dt>
+            <dd>{{ pago.get_metodo_display }}</dd>
+            <dt>Referencia</dt>
+            <dd>{{ pago.referencia|default:'—' }}</dd>
+            <dt>Registrado por</dt>
+            <dd>{{ pago.responsable }}</dd>
+        </dl>
+        <div class="importe-recibo">
+            <small>IMPORTE RECIBIDO</small>
+            <strong>
+                S/
+                {{ pago.importe|floatformat:2 }}
+            </strong>
+        </div>
+        <p>
+            Concepto: abono al encargo
+            {{ pedido.numero }}
+            .
+        </p>
+        <p class="firma">Gracias por confiar tu próxima historia a nuestras manos.</p>
+        <p class="nota-legal">Constancia interna de pago. No sustituye un comprobante fiscal.</p>
+        <div class="firmas">
+            <span>Recibí conforme / Taller</span>
+            <span>Cliente</span>
+        </div>
+    </article>
+{% endblock %}

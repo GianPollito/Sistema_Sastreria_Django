@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.py[cod]
+staticfiles/
+.coverage
+.env
+.env.*
+!.env.example

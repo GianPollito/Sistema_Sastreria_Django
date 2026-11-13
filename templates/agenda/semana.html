@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <p class="eyebrow">TIEMPO RESERVADO PARA EL OFICIO</p>
+    <div class="cabecera">
+        <h1>Agenda del taller.</h1>
+        {% if perms.agenda.add_cita %}
+            <a class="boton principal" href="{% url 'cita_nueva' %}">+ Reservar una cita</a>
+        {% endif %}
+    </div>
+    <div class="semana-control">
+        <a class="boton" href="?fecha={{ anterior }}">← Semana anterior</a>
+        <h2>
+            Semana del
+            {{ lunes|date:'d F Y' }}
+        </h2>
+        <a class="boton" href="?fecha={{ siguiente }}">Semana siguiente →</a>
+        <a href="{% url 'agenda' %}">Hoy</a>
+    </div>
+    <div class="agenda-semana">
+        {% for dia in dias %}
+            <section>
+                <div class="dia-fecha">
+                    <small>{{ dia.fecha|date:'l' }}</small>
+                    <strong>{{ dia.fecha|date:'d' }}</strong>
+                    <span>{{ dia.fecha|date:'M' }}</span>
+                </div>
+                {% for cita in dia.citas %}
+                    <article class="cita {{ cita.estado }}">
+                        <p class="eyebrow">
+                            {{ cita.inicio|date:'H:i' }}
+                            —
+                            {{ cita.fin|date:'H:i' }}
+                        </p>
+                        <h3>{{ cita.cliente }}</h3>
+                        <p>{{ cita.get_motivo_display }}</p>
+                        <small>
+                            {{ cita.empleado }}
+                            ·
+                            {{ cita.get_estado_display }}
+                        </small>
+                        {% if cita.pedido %}
+                            <a href="{% url 'pedido' cita.pedido_id %}">Encargo →</a>
+                        {% endif %}
+                        {% if perms.agenda.change_cita %}
+                            <a href="{% url 'cita_editar' cita.pk %}">Editar cita →</a>
+                        {% endif %}
+                        <small>{{ cita.notas }}</small>
+                    </article>
+                {% empty %}
+                    <p class="dia-libre">
+                        Un momento
+                        <br>
+                        por reservar.
+                    </p>
+                {% endfor %}
+            </section>
+        {% endfor %}
+    </div>
+{% endblock %}

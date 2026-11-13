@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <p class="eyebrow">ACCESO RESERVADO</p>
+    <h1>Esta llave abre otra puerta.</h1>
+    <p>Tu cuenta no tiene permiso para realizar esta operación o tu ficha de empleado está inactiva.</p>
+    <a class="boton" href="{% url 'panel' %}">Volver al taller</a>
+{% endblock %}

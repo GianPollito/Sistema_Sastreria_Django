@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <p class="eyebrow">FICHA NO ENCONTRADA</p>
+    <h1>Este hilo no lleva a una ficha.</h1>
+    <p>El registro no existe o no está entre tus encargos asignados.</p>
+    <a class="boton" href="{% url 'panel' %}">Volver al taller</a>
+{% endblock %}

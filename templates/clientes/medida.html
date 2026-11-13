@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <a class="volver" href="{% url 'cliente' cliente.pk %}">
+        ←
+        {{ cliente.nombre }}
+    </a>
+    <p class="eyebrow">UNA NUEVA VERSIÓN / MEDIDAS EN CENTÍMETROS</p>
+    <h1>El mapa del calce.</h1>
+    <p>Pulsa un punto de la silueta para enfocar su medida. Las fichas anteriores se conservarán.</p>
+    <div class="medicion">
+        <aside class="silueta papel">
+            <svg viewBox="0 0 320 650" role="group" aria-label="Silueta de medidas">
+                <defs>
+                    <pattern id="cuadricula" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M20 0H0V20" fill="none" stroke="#c9bdab" stroke-width=".5"/>
+                    </pattern>
+                </defs>
+                <rect width="320" height="650" fill="url(#cuadricula)"/>
+                <g fill="#ded7c7" stroke="#59644f" stroke-width="2">
+                    <ellipse cx="160" cy="68" rx="32" ry="42"/>
+                    <path d="M144 108V128L104 145 65 280 83 289 125 198 125 320 106 568 133 568 160 377 187 568 214 568 195 320 195 198 237 289 255 280 216 145 176 128V108"/>
+                    <path d="M106 568L97 588H138L133 568M187 568L182 588H223L214 568"/>
+                </g>
+                <g fill="none" stroke="#937744" stroke-dasharray="5 4">
+                    <path d="M104 145H216M125 192H195M125 270H195M122 320H198M160 120V588"/>
+                </g>
+                <g class="puntos">
+                    <a href="#id_cuello" data-medida="cuello" aria-label="Cuello">
+                        <circle cx="160" cy="120" r="13"/>
+                        <text x="160" y="125">1</text>
+                    </a>
+                    <a href="#id_hombro" data-medida="hombro" aria-label="Hombro">
+                        <circle cx="211" cy="145" r="13"/>
+                        <text x="211" y="150">2</text>
+                    </a>
+                    <a href="#id_pecho" data-medida="pecho" aria-label="Pecho">
+                        <circle cx="160" cy="195" r="13"/>
+                        <text x="160" y="200">3</text>
+                    </a>
+                    <a href="#id_cintura" data-medida="cintura" aria-label="Cintura">
+                        <circle cx="160" cy="270" r="13"/>
+                        <text x="160" y="275">4</text>
+                    </a>
+                    <a href="#id_cadera" data-medida="cadera" aria-label="Cadera">
+                        <circle cx="160" cy="320" r="13"/>
+                        <text x="160" y="325">5</text>
+                    </a>
+                    <a href="#id_largo_manga" data-medida="largo_manga" aria-label="Largo de manga">
+                        <circle cx="240" cy="270" r="13"/>
+                        <text x="240" y="275">6</text>
+                    </a>
+                    <a href="#id_largo_pantalon" data-medida="largo_pantalon" aria-label="Largo de pantalón">
+                        <circle cx="199" cy="485" r="13"/>
+                        <text x="199" y="490">7</text>
+                    </a>
+                    <a href="#id_largo_prenda" data-medida="largo_prenda" aria-label="Largo de prenda">
+                        <circle cx="113" cy="370" r="13"/>
+                        <text x="113" y="375">8</text>
+                    </a>
+                </g>
+            </svg>
+            <p class="eyebrow">
+                PATRÓN PERSONAL /
+                {{ cliente.nombre }}
+            </p>
+        </aside>
+        <form class="formulario papel" method="post" data-proteger-envio>
+            {% csrf_token %}
+            {% include 'gestion/form_campos.html' %}
+            <button class="principal">Guardar nueva versión</button>
+        </form>
+    </div>
+{% endblock %}

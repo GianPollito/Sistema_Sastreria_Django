@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block contenido %}
+    <div class="no-print">
+        <a class="volver" href="{% url 'tablero' %}">← El tendedero</a>
+    </div>
+    <p class="eyebrow">
+        ORDEN DE TALLER /
+        {{ pedido.get_modalidad_display }}
+    </p>
+    <div class="cabecera">
+        <div>
+            <span class="numero grande">{{ pedido.numero }}</span>
+            <h1>{{ pedido.cliente }}</h1>
+        </div>
+        <div class="acciones no-print">
+            <button type="button" data-imprimir>Imprimir ficha</button>
+            {% if puede_gestionar and perms.pedidos.change_pedido and pedido.estado != 'entregado' %}
+                <a class="boton" href="{% url 'pedido_editar' pedido.pk %}">Editar encargo</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="datos-orden">
+        <div>
+            <small>FECHA PROMETIDA</small>
+            <strong>{{ pedido.fecha_prometida|date:'d F Y' }}</strong>
+        </div>
+        <div>
+            <small>MANOS A CARGO</small>
+            <strong>{{ pedido.sastre|default:'Por asignar' }}</strong>
+        </div>
+        <div>
+            <small>PRIORIDAD</small>
+            <strong>{{ pedido.get_prioridad_display }}</strong>
+        </div>
+        <div>
+            <small>CONTACTO</small>
+            <strong>{{ pedido.cliente.telefono }}</strong>
+        </div>
+    </div>
+    <ol class="hilo">
+        {% for etapa in etapas %}
+            <li class="{% if etapa.pasada %}cosida{% endif %}" {% if etapa.codigo == pedido.estado %}aria-current="step"{% endif %}>
+                <span>{{ forloop.counter }}</span>
+                {{ etapa.nombre }}
+            </li>
+        {% endfor %}
+    </ol>
+    {% if siguiente and perms.pedidos.change_pedido %}
+        <form method="post" action="{% url 'pedido_estado' pedido.pk %}" class="acciones no-print" data-proteger-envio>
+            {% csrf_token %}
+            <input type="hidden" name="estado" value="{{ siguiente }}">
+            <button class="principal">
+                Avanzar a
+                {{ siguiente_nombre }}
+                →
+            </button>
+        </form>
+    {% endif %}
+    <div class="cabecera">
+        <h2>Las prendas del encargo</h2>
+        {% if perms.pedidos.add_detallepedido and pedido.estado == 'recibido' and not pedido.abonado %}
+            <a class="boton no-print" href="{% url 'detalle_nuevo' pedido.pk %}">+ Añadir prenda / arreglo</a>
+        {% endif %}
+    </div>
+    <div class="papel tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Prenda y especificaciones</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                    <th>Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in pedido.detalles.all %}
+                    <tr>
+                        <td>
+                            <strong>{{ detalle.descripcion }}</strong>
+                            <small>
+                                {{ detalle.tipo_prenda|default:'Arreglo rápido' }}
+                                {% if detalle.modelo %}
+                                    /
+                                    {{ detalle.modelo.nombre }}
+                                {% endif %}
+                            </small>
+                            {% if detalle.medida %}
+                                <small>
+                                    Medidas versión
+                                    {{ detalle.medida_id }}
+                                    ·
+                                    {{ detalle.medida.fecha|date:'d/m/Y' }}
+                                </small>
+                            {% endif %}
+                            {% if perms.pedidos.add_detallepedido and pedido.estado == 'recibido' and not pedido.abonado %}
+                                <small class="no-print">
+                                    <a href="{% url 'detalle_editar' pedido.pk detalle.pk %}">
+                                        Editar prenda y precio →
+                                    </a>
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>
+                            S/
+                            {{ detalle.precio_unitario|floatformat:2 }}
+                        </td>
+                        <td>
+                            S/
+                            {{ detalle.subtotal|floatformat:2 }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <p class="vacio">Añade las prendas y acuerda su precio antes de comenzar.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="columnas-dos">
+        <section>
+            <h2>La cuenta, con claridad.</h2>
+            <div class="totales">
+                <div>
+                    <span>Total acordado</span>
+                    <strong>
+                        S/
+                        {{ pedido.total|floatformat:2 }}
+                    </strong>
+                </div>
+                <div>
+                    <span>Abonos recibidos</span>
+                    <strong>
+                        S/
+                        {{ pedido.abonado|floatformat:2 }}
+                    </strong>
+                </div>
+                <div class="saldo">
+                    <span>Saldo pendiente</span>
+                    <strong>
+                        S/
+                        {{ pedido.saldo|floatformat:2 }}
+                    </strong>
+                </div>
+            </div>
+            {% if perms.pagos.add_pago and pedido.saldo > 0 %}
+                <details class="papel no-print">
+                    <summary>Registrar adelanto o cobro de saldo</summary>
+                    <form method="post" action="{% url 'cobrar' pedido.pk %}" data-proteger-envio>
+                        {% csrf_token %}
+                        {{ pago_form.as_p }}
+                        <button class="principal">Registrar cobro</button>
+                    </form>
+                </details>
+            {% endif %}
+            <h3>Comprobantes</h3>
+            {% for pago in pedido.pagos.all %}
+                <a class="renglon" href="{% url 'comprobante' pago.pk %}">
+                    <span>
+                        {{ pago.comprobante }}
+                        <small>
+                            {{ pago.fecha|date:'d/m/Y H:i' }}
+                            ·
+                            {{ pago.get_metodo_display }}
+                        </small>
+                    </span>
+                    <strong>
+                        S/
+                        {{ pago.importe|floatformat:2 }}
+                    </strong>
+                </a>
+            {% empty %}
+                <p>Aún no se ha registrado un adelanto.</p>
+            {% endfor %}
+        </section>
+        <section>
+            <h2>Notas de confección</h2>
+            <div class="papel texto-notas">
+                {{ pedido.notas|default:'Sin indicaciones adicionales.'|linebreaksbr }}
+                <hr>
+                <p class="eyebrow">PREFERENCIAS DEL CLIENTE</p>
+                {{ pedido.cliente.preferencias|default:'Sin preferencias anotadas.'|linebreaksbr }}
+                <p class="no-print">
+                    <a href="{% url 'cliente' pedido.cliente_id %}">Consultar medidas y ficha del cliente →</a>
+                </p>
+            </div>
+        </section>
+    </div>
+    <div class="cabecera">
+        <h2>Materiales utilizados</h2>
+        {% if perms.inventario.add_movimientoinventario and pedido.estado != 'entregado' %}
+            <a class="boton no-print" href="{% url 'lista' 'telas' %}">Registrar consumo desde inventario →</a>
+        {% endif %}
+    </div>
+    <div class="papel">
+        {% for detalle in pedido.detalles.all %}
+            <h3>{{ detalle.descripcion }}</h3>
+            {% for movimiento in detalle.movimientos.all %}
+                <p class="renglon">
+                    <span>
+                        {{ movimiento.tela|default:movimiento.insumo }}
+                        <small>
+                            {{ movimiento.get_tipo_display }}
+                            ·
+                            {{ movimiento.fecha|date:'d/m/Y H:i' }}
+                        </small>
+                    </span>
+                    <b>
+                        {{ movimiento.cantidad }}
+                        {% if movimiento.tela %}
+                            m
+                        {% else %}
+                            {{ movimiento.insumo.unidad }}
+                        {% endif %}
+                    </b>
+                </p>
+            {% empty %}
+                <p>No se han anotado consumos para esta prenda.</p>
+            {% endfor %}
+        {% empty %}
+            <p>El registro de materiales estará disponible al añadir una prenda.</p>
+        {% endfor %}
+    </div>
+    <h2>Las puntadas del encargo</h2>
+    <div class="historial">
+        {% for cambio in historial %}
+            <p>
+                <b>{{ cambio.fecha|date:'d/m/Y H:i' }}</b>
+                ·
+                {{ cambio.get_nuevo_display }}
+                <small>{{ cambio.responsable }}</small>
+            </p>
+        {% empty %}
+            <p>El encargo está recibido y espera su primera puntada.</p>
+        {% endfor %}
+    </div>
+    <div class="firmas">
+        <span>Firma del cliente</span>
+        <span>Responsable del taller</span>
+    </div>
+{% endblock %}
